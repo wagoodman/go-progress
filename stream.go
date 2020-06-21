@@ -48,3 +48,31 @@ func StreamMonitor(ctx context.Context, monitor Monitorable, interval time.Durat
 	}()
 	return results
 }
+
+func StreamMonitors(ctx context.Context, monitors []Monitorable, interval time.Duration) <-chan []int64 {
+	results := make(chan []int64)
+
+	go func() {
+		defer close(results)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(interval):
+				res := make([]int64, len(monitors))
+				completedMonitors := 0
+				for _, monitor := range monitors {
+					if IsErrCompleted(monitor.Error()) {
+						completedMonitors++
+					}
+					res = append(res, monitor.Current())
+				}
+				results <- res
+				if completedMonitors == len(monitors) {
+					return
+				}
+			}
+		}
+	}()
+	return results
+}

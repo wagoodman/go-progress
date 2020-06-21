@@ -28,10 +28,8 @@ func (p Manual) Progress() Progress {
 
 func (p *Manual) SetCompleted() {
 	p.Err = ErrCompleted
-	if p.Total > 0 {
-		p.N = p.Total
+	if p.N > 0 && p.Total <= 0 {
+		p.Total = p.N
 		return
 	}
-	p.N = 1
-	p.Total = 1
 }
