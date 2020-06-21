@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	liteTheme SimpleTheme = iota
-	liteSquashTheme
-	heavyTheme
-	heavySquashTheme
-	reallyHeavySquashTheme
+	LiteTheme SimpleTheme = iota
+	LiteSquashTheme
+	HeavyTheme
+	HeavySquashTheme
+	ReallyHeavySquashTheme
+	HeavyNoBarTheme
 )
 
 const (
@@ -26,11 +27,12 @@ type SimpleTheme int
 type SimplePosition int
 
 var lookup = map[SimpleTheme][]string{
-	liteTheme:              {" ", "─", "├", "┤"},
-	liteSquashTheme:        {" ", "─", "▕", "▏"},
-	heavyTheme:             {"━", "━", "┝", "┥"},
-	heavySquashTheme:       {"━", "━", "▕", "▏"},
-	reallyHeavySquashTheme: {"━", "━", "▐", "▌"},
+	LiteTheme:              {" ", "─", "├", "┤"},
+	LiteSquashTheme:        {" ", "─", "▕", "▏"},
+	HeavyTheme:             {"━", "━", "┝", "┥"},
+	HeavySquashTheme:       {"━", "━", "▕", "▏"},
+	ReallyHeavySquashTheme: {"━", "━", "▐", "▌"},
+	HeavyNoBarTheme:        {"━", "━", " ", " "},
 }
 
 var (
@@ -44,8 +46,15 @@ type Simple struct {
 	charSet []string
 }
 
-func NewSimple(width int) Simple {
-	theme := heavySquashTheme
+func NewSimple(width int, themes ...SimpleTheme) Simple {
+	var theme SimpleTheme
+	switch len(themes) {
+	case 1:
+		theme = themes[0]
+	default:
+		theme = HeavySquashTheme
+	}
+
 	return Simple{
 		width:   width,
 		theme:   theme,

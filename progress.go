@@ -43,8 +43,12 @@ func (p Progress) Error() error {
 	return p.err
 }
 
+func (p Progress) Progress() Progress {
+	return p
+}
+
 func (p Progress) Complete() bool {
-	return isCompleted(&p)
+	return IsCompleted(&p)
 }
 
 func (p Progress) Ratio() float64 {
@@ -67,12 +71,19 @@ func (p Progress) Percent() float64 {
 	return 100 / (float64(p.size) / float64(p.current))
 }
 
-func isCompleted(p Progressable) bool {
-	if errors.Is(p.Error(), io.EOF) || errors.Is(p.Error(), ErrCompleted) {
+func IsCompleted(p Progressable) bool {
+	if IsErrCompleted(p.Error()) {
 		return true
 	}
 	if p.Size() < 0 {
 		return false
 	}
 	return p.Current() >= p.Size()
+}
+
+func IsErrCompleted(err error) bool {
+	if errors.Is(err, io.EOF) || errors.Is(err, ErrCompleted) {
+		return true
+	}
+	return false
 }

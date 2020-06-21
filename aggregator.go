@@ -14,52 +14,30 @@ const (
 
 type AggregationStrategy int
 
-type AggregateGenerator struct {
-	progs        []Progressable
-	names        map[int]string
-	nextIndex    int
-	currentIndex int
-	strategy     AggregationStrategy
+type Aggregator struct {
+	progs    []Progressable
+	strategy AggregationStrategy
 }
 
-func NewAggregateGenerator(p ...Progressable) *AggregateGenerator {
-	strategy := NormalizeStrategy
+func NewAggregator(strategy AggregationStrategy, p ...Progressable) *Aggregator {
 	if p == nil {
 		p = make([]Progressable, 0)
 	}
-	return &AggregateGenerator{
+	return &Aggregator{
 		progs:    p,
-		names:    make(map[int]string),
 		strategy: strategy,
 	}
 }
 
-func (a *AggregateGenerator) SetStrategy(strategy AggregationStrategy) {
-	a.strategy = strategy
-}
-
-func (a *AggregateGenerator) Add(p ...Progressable) {
+func (a *Aggregator) Add(p ...Progressable) {
 	a.progs = append(a.progs, p...)
-	a.nextIndex += len(p)
 }
 
-func (a *AggregateGenerator) AddNamed(name string, p Progressable) {
-	a.names[a.nextIndex] = name
-	a.nextIndex++
-}
-
-func (a *AggregateGenerator) CurrentName() string {
-	if name, ok := a.names[a.currentIndex]; ok {
-		return name
-	}
-	return ""
-}
-
-func (a *AggregateGenerator) Progress() Progress {
+func (a *Aggregator) Progress() Progress {
 	result := Progress{}
 	var completedProgs int
-	var currentIndex = -1
-	for idx, p := range a.progs {
+
+	for _, p := range a.progs {
 
 		switch a.strategy {
 		case NormalizeStrategy:
@@ -79,23 +57,25 @@ func (a *AggregateGenerator) Progress() Progress {
 		if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, ErrCompleted) {
 			result.err = multierror.Append(result.err, err)
 		}
-		if isCompleted(p) {
+		if IsCompleted(p) {
 			completedProgs++
-		} else {
-			// the first non-completed task is the current task
-			if currentIndex <= 0 {
-				currentIndex = idx
-			}
 		}
-	}
-	if currentIndex <= 0 {
-		a.currentIndex = 0
-	} else {
-		a.currentIndex = currentIndex
 	}
 
 	if completedProgs == len(a.progs) {
 		result.err = multierror.Append(result.err, ErrCompleted)
 	}
 	return result
+}
+
+func (a Aggregator) Current() int64 {
+	return a.Progress().Current()
+}
+
+func (a Aggregator) Size() int64 {
+	return a.Progress().Size()
+}
+
+func (a Aggregator) Error() error {
+	return a.Progress().Error()
 }
