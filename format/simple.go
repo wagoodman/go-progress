@@ -36,40 +36,42 @@ var lookup = map[SimpleTheme][]string{
 }
 
 var (
-	doneColor = color.HEX("#ff8700")
-	todoColor = color.HEX("#c6c6c6")
+	ColorCompleted = color.HEX("#fcba03")
+	ColorTodo      = color.HEX("#777777")
 )
 
 type Simple struct {
-	width   int
-	theme   SimpleTheme
-	charSet []string
+	width     int
+	charSet   []string
+	doneColor color.RGBColor
+	todoColor color.RGBColor
 }
 
-func NewSimple(width int, themes ...SimpleTheme) Simple {
-	var theme SimpleTheme
-	switch len(themes) {
-	case 1:
-		theme = themes[0]
-	default:
-		theme = HeavySquashTheme
-	}
-
+func NewSimple(width int) Simple {
 	return Simple{
-		width:   width,
-		theme:   theme,
-		charSet: lookup[theme],
+		width:     width,
+		charSet:   lookup[HeavySquashTheme],
+		doneColor: ColorCompleted,
+		todoColor: ColorTodo,
+	}
+}
+
+func NewSimpleWithTheme(width int, theme SimpleTheme, doneHexColor, todoHexColor color.RGBColor) Simple {
+	return Simple{
+		width:     width,
+		charSet:   lookup[theme],
+		doneColor: doneHexColor,
+		todoColor: todoHexColor,
 	}
 }
 
 func (s Simple) Format(p progress.Progress) (string, error) {
-
 	completedRatio := p.Ratio()
 	completedCount := int(completedRatio * float64(s.width))
 	todoCount := s.width - completedCount
 
-	completedSection := doneColor.Sprint(strings.Repeat(string(s.charSet[fullPosition]), completedCount))
-	todoSection := todoColor.Sprint(strings.Repeat(string(s.charSet[fullPosition]), todoCount))
+	completedSection := s.doneColor.Sprint(strings.Repeat(string(s.charSet[fullPosition]), completedCount))
+	todoSection := s.todoColor.Sprint(strings.Repeat(string(s.charSet[fullPosition]), todoCount))
 
 	return s.charSet[leftCapPosition] + completedSection + todoSection + s.charSet[rightCapPosition], nil
 }
