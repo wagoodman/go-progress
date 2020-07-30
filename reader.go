@@ -9,22 +9,31 @@ import (
 // Reader should wrap another reader (acts as a bytes pass through)
 type Reader struct {
 	reader io.Reader
-	bytes  int
-	err    error
-	size   int64
+	monitor *Manual
 }
 
 func NewSizedReader(reader io.Reader, size int64) *Reader {
 	return &Reader{
 		reader: reader,
-		size:   size,
+		monitor: &Manual{
+			Total: size,
+		},
 	}
 }
 
 func NewReader(reader io.Reader) *Reader {
 	return &Reader{
 		reader: reader,
-		size:   -1,
+		monitor: &Manual{
+			Total: -1,
+		},
+	}
+}
+
+func NewProxyReader(reader io.Reader, monitor *Manual) *Reader {
+	return &Reader{
+		reader: reader,
+		monitor: monitor,
 	}
 }
 
@@ -33,26 +42,26 @@ func (r *Reader) SetReader(reader io.Reader) {
 }
 
 func (r *Reader) SetCompleted() {
-	r.err = multierror.Append(r.err, ErrCompleted)
+	r.monitor.Err = multierror.Append(r.monitor.Err, ErrCompleted)
 }
 
 func (r *Reader) Read(p []byte) (n int, err error) {
 	bytes, err := r.reader.Read(p)
-	r.bytes += bytes
+	r.monitor.N += int64(bytes)
 	if err != nil {
-		r.err = multierror.Append(r.err, err)
+		r.monitor.Err = multierror.Append(r.monitor.Err, err)
 	}
 	return bytes, err
 }
 
 func (r *Reader) Current() int64 {
-	return int64(r.bytes)
+	return r.monitor.N
 }
 
 func (r *Reader) Size() int64 {
-	return int64(r.size)
+	return r.monitor.Total
 }
 
 func (r *Reader) Error() error {
-	return error(r.err)
+	return r.monitor.Err
 }
