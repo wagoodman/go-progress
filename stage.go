@@ -12,6 +12,11 @@ func (s Stage) Stage() string {
 	return s.Current
 }
 
+type StagedMonitorable interface {
+	Stager
+	Monitorable
+}
+
 type StagedProgressable interface {
 	Stager
 	Progressable
