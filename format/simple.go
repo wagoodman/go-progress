@@ -32,7 +32,7 @@ var lookup = map[SimpleTheme][]string{
 	HeavyTheme:             {"━", "━", "┝", "┥"},
 	HeavySquashTheme:       {"━", "━", "▕", "▏"},
 	ReallyHeavySquashTheme: {"━", "━", "▐", "▌"},
-	HeavyNoBarTheme:        {"━", "━", " ", " "},
+	HeavyNoBarTheme:        {"━", "━", "", ""},
 }
 
 var (
