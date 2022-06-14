@@ -49,7 +49,10 @@ func (a *Aggregator) Progress() Progress {
 			result.size += 100
 		default:
 			result.current += p.Current()
-			result.size += p.Size()
+			s := p.Size()
+			if s > 0 {
+				result.size += s
+			}
 		}
 
 		// capture notable errors
