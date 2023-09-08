@@ -2,6 +2,8 @@ package progress
 
 import "sync/atomic"
 
+var _ Stager = (*AtomicStage)(nil)
+
 type AtomicStage struct {
 	current atomic.Value
 }
