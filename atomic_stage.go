@@ -8,7 +8,7 @@ type AtomicStage struct {
 	current atomic.Value
 }
 
-func (s *AtomicStage) getCurrentStage() string {
+func (s *AtomicStage) getCurrent() string {
 	return s.current.Load().(string)
 }
 
@@ -17,7 +17,7 @@ func (s *AtomicStage) setCurrent(new string) {
 }
 
 func (s *AtomicStage) Stage() string {
-	return s.getCurrentStage()
+	return s.getCurrent()
 }
 
 func (s *AtomicStage) Set(new string) {
