@@ -2,6 +2,7 @@ package progress
 
 import (
 	"errors"
+	"io"
 	"strings"
 	"testing"
 )
@@ -88,5 +89,19 @@ func TestWriter(t *testing.T) {
 			}
 
 		})
+	}
+}
+
+func TestInitialConditions(t *testing.T) {
+	w := NewSizedWriter(42)
+	if w.Error() != nil {
+		t.Errorf("Expected nil error but was %+v", w.Error())
+	}
+	if w.Size() != 42 {
+		t.Errorf("Expect %d size but was %d", 42, w.Size())
+	}
+	w.SetComplete()
+	if !errors.Is(w.Error(), io.EOF) {
+		t.Errorf("SetCompleted should set EOF, but got %+v", w.Error())
 	}
 }
